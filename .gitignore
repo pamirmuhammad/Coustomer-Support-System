@@ -34,6 +34,7 @@ build/
 node_modules/
 uploads/
 .env
+.env.production
 
 ### OS ###
 .DS_Store
