@@ -16,7 +16,7 @@ RUN groupadd -r app && useradd -r -g app -d /app -s /sbin/nologin app
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 
-RUN mkdir -p uploads && chown -R app:app /app
+RUN mkdir -p uploads logs && chown -R app:app /app
 
 USER app
 
