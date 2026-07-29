@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  html {
+    font-family: system-ui, sans-serif;
+  }
+
+  /* Remove Chrome/Edge focus outlines on SVG and chart elements */
+  .recharts-wrapper svg,
+  .recharts-surface,
+  .recharts-pie-sector,
+  .recharts-pie-sector path,
+  .recharts-legend-item,
+  .recharts-layer {
+    outline: none !important;
+    outline-offset: 0 !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .recharts-wrapper {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}
+
+@layer components {
+  .glassmorphism {
+    @apply bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200;
+    @apply rounded-2xl;
+    @apply shadow-2xl;
+    @apply border border-white/20;
+    @apply overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
+  .animation-delay-1500 {
+    animation-delay: 1500ms;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2000ms;
+  }
+  
+  @keyframes sparkle {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+  }
+  
+  .animate-sparkle {
+    animation: sparkle 3s ease-in-out infinite;
+  }
+}
+
+/* Prevent browser autofill blue background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  caret-color: #1e293b !important;
+}

@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.App {
+  min-height: 100vh;
+}
+
+.App-header {
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.App-header p {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+}
+
+.App-main {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.status-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-card h2 {
+  margin-top: 0;
+}
+
+.status-indicator {
+  display: inline-block;
+  padding: 0.5rem 2rem;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin: 1rem 0;
+}
+
+.status-indicator.up {
+  background: #4ade80;
+  color: #065f46;
+}
+
+.status-indicator.down {
+  background: #f87171;
+  color: #7f1d1d;
+}
+
+.message {
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.error {
+  color: #f87171;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: #4ade80;
+  color: #065f46;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #22c55e;
+}
+
+.info {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info h3 {
+  margin-top: 0;
+}
+
+.info ul {
+  text-align: left;
+  list-style: none;
+  padding: 0;
+}
+
+.info li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info li:last-child {
+  border-bottom: none;
+}

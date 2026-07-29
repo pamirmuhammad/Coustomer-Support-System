@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-system
+  namespace: ticket-system
+  labels:
+    app: ticket-system
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: ticket-system
+  template:
+    metadata:
+      labels:
+        app: ticket-system
+    spec:
+      containers:
+        - name: ticket-system
+          image: ticket-system:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 8081
+              name: management
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: management
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          envFrom:
+            - configMapRef:
+                name: ticket-system-config
+            - secretRef:
+                name: ticket-system-secret

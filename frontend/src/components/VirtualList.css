@@ -1,0 +1,42 @@
+/* Virtual List Styles */
+.virtual-list-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+}
+
+.virtual-list-content {
+  width: 100%;
+}
+
+.virtual-list-items {
+  width: 100%;
+}
+
+.virtual-list-item {
+  width: 100%;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.virtual-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Custom scrollbar for better performance */
+.virtual-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.virtual-list-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.virtual-list-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.virtual-list-container::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}

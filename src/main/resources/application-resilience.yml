@@ -1,0 +1,39 @@
+resilience4j:
+  circuitbreaker:
+    instances:
+      databaseService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      redisService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      databaseRetry:
+        maxAttempts: 3
+        waitDuration: 500ms
+        retryExceptions:
+          - org.springframework.dao.DataAccessException
+      redisRetry:
+        maxAttempts: 2
+        waitDuration: 200ms
+  bulkhead:
+    instances:
+      databaseBulkhead:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 500ms
+      redisBulkhead:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 200ms
