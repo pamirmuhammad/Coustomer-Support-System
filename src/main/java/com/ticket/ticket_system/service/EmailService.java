@@ -64,6 +64,26 @@ public class EmailService {
         }
     }
 
+    /** Sends an activation notification email when an admin activates a user's account. */
+    public void sendActivationEmail(String toEmail, String fullName) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Account Activated - Customer Support System");
+            message.setText("Dear " + fullName + ",\n\n" +
+                    "Your account has been activated successfully!\n\n" +
+                    "You can now log in to the Customer Support System using your username and password.\n\n" +
+                    "System URL: " + systemUrl + "\n\n" +
+                    "Best regards,\n" +
+                    "Customer Support System");
+            mailSender.send(message);
+            log.info("Activation email sent to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send activation email to: {}", toEmail, e);
+        }
+    }
+
     /** Sends a welcome email to newly registered users. */
     public void sendWelcomeEmail(String toEmail, String fullName) {
         try {

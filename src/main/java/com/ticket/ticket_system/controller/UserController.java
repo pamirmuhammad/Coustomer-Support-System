@@ -170,8 +170,12 @@ public class UserController {
         if (userData.containsKey("phone") && userData.get("phone") != null) {
             existing.setPhone((String) userData.get("phone"));
         }
+        boolean wasActivated = false;
         if (userData.containsKey("active")) {
-            existing.setActive((Boolean) userData.get("active"));
+            boolean oldActive = existing.isActive();
+            boolean newActive = (Boolean) userData.get("active");
+            existing.setActive(newActive);
+            wasActivated = !oldActive && newActive;
         }
 
         if (userData.containsKey("roleId") && userData.get("roleId") != null) {
@@ -191,6 +195,9 @@ public class UserController {
         }
 
         User updated = userService.updateUser(id, existing);
+        if (wasActivated) {
+            emailService.sendActivationEmail(updated.getEmail(), updated.getFullName());
+        }
         auditLogService.log("USER", id, "UPDATED", getCurrentUserId(), getCurrentUsername(), "User updated: " + existing.getUsername());
         return ResponseEntity.ok(UserResponseDTO.from(updated));
     }
