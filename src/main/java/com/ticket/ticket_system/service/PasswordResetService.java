@@ -95,7 +95,6 @@ public class PasswordResetService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired OTP");
         }
 
-        token.setUsed(true);
         token.setFailedAttempts(0);
         tokenRepository.save(token);
         log.info("OTP verified for email: {}", email);
