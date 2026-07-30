@@ -65,13 +65,13 @@ public class EmailService {
     }
 
     /** Sends a welcome email to newly registered users. */
-    public void sendWelcomeEmail(String toEmail, String username) {
+    public void sendWelcomeEmail(String toEmail, String fullName) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Welcome to Customer Support System");
-            message.setText("Dear " + username + ",\n\n" +
+            message.setText("Dear " + fullName + ",\n\n" +
                     "Welcome to the Customer Support System!\n\n" +
                     "Your account has been created successfully. However, your account is not yet activated.\n\n" +
                     "An administrator must activate your account before you can log in. You will receive a notification once your account has been activated.\n\n" +

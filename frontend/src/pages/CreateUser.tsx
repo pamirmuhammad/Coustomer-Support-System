@@ -838,7 +838,7 @@ const handleToggleActiveConfirm = async () => {
                         const val = e.target.value.replace(/[^0-9+]/g, '').slice(0, 15);
                         setFormData({ ...formData, phone: val });
                       }}
-                      placeholder={t('enterPhone')}
+                      placeholder={t('+93')}
                       autoComplete="off"
                       className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       style={{ padding: '10px 12px', fontSize: '14px', boxSizing: 'border-box', color: '#1e293b', textAlign: isRTL ? 'right' : 'left' }}

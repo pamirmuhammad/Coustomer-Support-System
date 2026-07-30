@@ -257,7 +257,7 @@ public class AuthController {
         }
 
         User created = userService.createUser(user);
-        emailService.sendWelcomeEmail(created.getEmail(), created.getUsername());
+        emailService.sendWelcomeEmail(created.getEmail(), created.getFullName());
         auditLogService.log("USER", created.getId(), "SIGNUP", created.getId(), created.getUsername(), "User signed up via /auth/signup");
         String roleCode = created.getRole() != null ? getRoleCode(created.getRole()) : "USER";
         String token = jwtUtil.generateToken(created.getId());

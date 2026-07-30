@@ -119,7 +119,7 @@ public class UserController {
         }
 
         User savedUser = userService.createUser(user);
-        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
+        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullName());
         auditLogService.log("USER", savedUser.getId(), "CREATED", getCurrentUserId(), getCurrentUsername(), "User created: " + savedUser.getUsername());
         return ResponseEntity.ok(UserResponseDTO.from(savedUser));
     }
