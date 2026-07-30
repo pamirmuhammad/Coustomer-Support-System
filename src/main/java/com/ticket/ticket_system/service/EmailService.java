@@ -1,18 +1,16 @@
 package com.ticket.ticket_system.service;
 
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Service for sending transactional emails (OTP, welcome).
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,20 +24,24 @@ public class EmailService {
     @Value("${app.openapi.server-url:http://localhost:8080}")
     private String systemUrl;
 
-    /** Sends a password-reset OTP email to the given address. */
     public void sendOtpEmail(String toEmail, String otp, int expiryMinutes) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Password Reset OTP - Customer Support System");
-            message.setText("Dear User,\n\n" +
-                    "You have requested to reset your password.\n\n" +
-                    "Your OTP code is: " + otp + "\n\n" +
-                    "This OTP will expire in " + expiryMinutes + " minutes.\n\n" +
-                    "If you did not request this password reset, please ignore this email.\n\n" +
-                    "Best regards,\n" +
-                    "Customer Support System");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Password Reset OTP - Customer Support System");
+            helper.setText(
+                "<!DOCTYPE html><html><body style=\"font-family: Arial, sans-serif; padding: 20px;\">" +
+                "<h2 style=\"color: #2b51b1;\">Password Reset</h2>" +
+                "<p>You have requested to reset your password.</p>" +
+                "<p style=\"font-size: 24px; font-weight: bold; color: #2b51b1; letter-spacing: 4px;\">" + otp + "</p>" +
+                "<p>This OTP will expire in " + expiryMinutes + " minutes.</p>" +
+                "<p>If you did not request this password reset, please ignore this email.</p>" +
+                "<hr><p style=\"color: #666; font-size: 12px;\">Customer Support System</p>" +
+                "</body></html>",
+                true
+            );
             mailSender.send(message);
             log.info("OTP email sent to: {}", toEmail);
         } catch (Exception e) {
@@ -48,15 +50,15 @@ public class EmailService {
         }
     }
 
-    /** Sends a generic notification email asynchronously (assignment, comment, status change, etc.). */
     @Async
     public void sendNotificationEmail(String toEmail, String subject, String body) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject(subject);
-            message.setText(body);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(body, false);
             mailSender.send(message);
             log.info("Notification email sent to: {}", toEmail);
         } catch (Exception e) {
@@ -64,44 +66,53 @@ public class EmailService {
         }
     }
 
-    /** Sends an activation notification email when an admin activates a user's account. */
-    public void sendActivationEmail(String toEmail, String fullName) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Account Activated - Customer Support System");
-            message.setText("Dear " + fullName + ",\n\n" +
-                    "Your account has been activated successfully!\n\n" +
-                    "You can now log in to the Customer Support System using your username and password.\n\n" +
-                    "System URL: " + systemUrl + "\n\n" +
-                    "Best regards,\n" +
-                    "Customer Support System");
-            mailSender.send(message);
-            log.info("Activation email sent to: {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send activation email to: {}", toEmail, e);
-        }
-    }
-
-    /** Sends a welcome email to newly registered users. */
     public void sendWelcomeEmail(String toEmail, String fullName) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Welcome to Customer Support System");
-            message.setText("Dear " + fullName + ",\n\n" +
-                    "Welcome to the Customer Support System!\n\n" +
-                    "Your account has been created successfully. However, your account is not yet activated.\n\n" +
-                    "An administrator must activate your account before you can log in. You will receive a notification once your account has been activated.\n\n" +
-                    "System URL: " + systemUrl + "\n\n" +
-                    "Best regards,\n" +
-                    "Customer Support System");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Welcome to Customer Support System");
+            helper.setText(
+                "<!DOCTYPE html><html><body style=\"font-family: Arial, sans-serif; padding: 20px;\">" +
+                "<h2 style=\"color: #2b51b1;\">Welcome to Customer Support System</h2>" +
+                "<p>Dear " + fullName + ",</p>" +
+                "<p>Your account has been created successfully. However, your account is not yet activated.</p>" +
+                "<p>An administrator must activate your account before you can log in. You will receive a notification once your account has been activated.</p>" +
+                "<p>System URL: <a href=\"" + systemUrl + "\">" + systemUrl + "</a></p>" +
+                "<hr><p style=\"color: #666; font-size: 12px;\">Customer Support System</p>" +
+                "</body></html>",
+                true
+            );
             mailSender.send(message);
             log.info("Welcome email sent to: {}", toEmail);
         } catch (Exception e) {
             log.error("Failed to send welcome email to: {}", toEmail, e);
+        }
+    }
+
+    public void sendActivationEmail(String toEmail, String fullName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Account Activated - Customer Support System");
+            helper.setText(
+                "<!DOCTYPE html><html><body style=\"font-family: Arial, sans-serif; padding: 20px;\">" +
+                "<h2 style=\"color: #2b51b1;\">Account Activated</h2>" +
+                "<p>Dear " + fullName + ",</p>" +
+                "<p>Your account has been activated successfully!</p>" +
+                "<p>You can now log in to the Customer Support System using your username and password.</p>" +
+                "<p>System URL: <a href=\"" + systemUrl + "\">" + systemUrl + "</a></p>" +
+                "<hr><p style=\"color: #666; font-size: 12px;\">Customer Support System</p>" +
+                "</body></html>",
+                true
+            );
+            mailSender.send(message);
+            log.info("Activation email sent to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send activation email to: {}", toEmail, e);
         }
     }
 }
