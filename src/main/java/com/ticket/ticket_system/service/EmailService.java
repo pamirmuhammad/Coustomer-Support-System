@@ -23,6 +23,9 @@ public class EmailService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
+    @Value("${app.openapi.server-url:http://localhost:8080}")
+    private String systemUrl;
+
     /** Sends a password-reset OTP email to the given address. */
     public void sendOtpEmail(String toEmail, String otp, int expiryMinutes) {
         try {
@@ -70,7 +73,9 @@ public class EmailService {
             message.setSubject("Welcome to Customer Support System");
             message.setText("Dear " + username + ",\n\n" +
                     "Welcome to the Customer Support System!\n\n" +
-                    "Your account has been created successfully. You can now log in and start using the system.\n\n" +
+                    "Your account has been created successfully. However, your account is not yet activated.\n\n" +
+                    "An administrator must activate your account before you can log in. You will receive a notification once your account has been activated.\n\n" +
+                    "System URL: " + systemUrl + "\n\n" +
                     "Best regards,\n" +
                     "Customer Support System");
             mailSender.send(message);

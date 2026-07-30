@@ -172,7 +172,7 @@ export default function ForgotPassword() {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 required
-                placeholder={t('enterOTP')}
+                placeholder={t('EnterOTP')}
                 maxLength={6}
               />
             </div>
