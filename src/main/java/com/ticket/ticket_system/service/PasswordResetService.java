@@ -41,7 +41,6 @@ public class PasswordResetService {
         userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to process request"));
 
-        // Rate limit: check for existing unused, non-expired token
         var existing = tokenRepository.findByEmail(email);
         if (existing.isPresent()) {
             PasswordResetToken token = existing.get();
@@ -49,7 +48,15 @@ public class PasswordResetService {
                 log.warn("OTP request rate limited for email: {}", email);
                 return;
             }
-            tokenRepository.deleteByEmail(email);
+            String otp = generateOTP();
+            token.setOtp(otp);
+            token.setExpiryDate(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
+            token.setUsed(false);
+            token.setFailedAttempts(0);
+            tokenRepository.save(token);
+            emailService.sendOtpEmail(email, otp, OTP_EXPIRY_MINUTES);
+            log.info("OTP re-sent to email: {}", email);
+            return;
         }
 
         String otp = generateOTP();
