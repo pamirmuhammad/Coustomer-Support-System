@@ -251,6 +251,7 @@ const [showOTP, setShowOTP] = useState(false);
         <p className="auth-link">
           {t('rememberPassword')} <Link to="/signin">{t('signIn')}</Link>
         </p>
+        <div style={{ marginTop: '12px', textAlign: 'center', color: '#94a3b8', fontSize: '11px' }}>build v3</div>
       </div>
     </div>
   );
