@@ -48,6 +48,10 @@ public class LocalStorageService implements StorageService {
             Files.createDirectories(uploadPath);
         }
         Path target = resolveSafePath(key);
+        Path parent = target.getParent();
+        if (parent != null && !Files.exists(parent)) {
+            Files.createDirectories(parent);
+        }
         Files.copy(file.getInputStream(), target);
         return key;
     }
