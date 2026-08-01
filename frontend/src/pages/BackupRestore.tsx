@@ -136,7 +136,7 @@ export default function BackupRestore() {
       <ToastContainer />
       <div className="w-full px-2 py-2 overflow-x-auto">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
-          <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-5 border-b border-gray-100">
+          <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-2.5 border-b border-gray-100">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md flex items-center justify-center shrink-0">
@@ -151,10 +151,10 @@ export default function BackupRestore() {
             </div>
           </div>
 
-          <div className="p-6 grid gap-6 lg:grid-cols-2">
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
             {/* Create Backup */}
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-4 h-full w-full">
+              <div className="flex items-center gap-3 mb-2">
                 <span
                   className="p-2 rounded-lg shrink-0"
                   style={{ background: '#2b51b1' }}
@@ -167,26 +167,28 @@ export default function BackupRestore() {
                 </span>
                 <h3 className="text-base font-bold text-gray-800">{t('createBackup')}</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-5 leading-relaxed">{t('createBackupDescription')}</p>
-              <button
-                onClick={handleDownloadBackup}
-                disabled={backingUp}
-                style={{ ...primaryButtonStyle, opacity: backingUp ? 0.6 : 1, cursor: backingUp ? 'not-allowed' : 'pointer' }}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={(e) => handleMouseLeave(e, 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) padding-box, #2b51b1 border-box', '#1e293b')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                </svg>
-                {backingUp ? t('backupInProgress') : t('downloadBackup')}
-              </button>
+              <p className="text-sm text-gray-900 mb-3 leading-relaxed">{t('createBackupDescription')}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleDownloadBackup}
+                  disabled={backingUp}
+                  style={{ ...primaryButtonStyle, opacity: backingUp ? 0.6 : 1, cursor: backingUp ? 'not-allowed' : 'pointer' }}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={(e) => handleMouseLeave(e, 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) padding-box, #2b51b1 border-box', '#1e293b')}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                  </svg>
+                  {backingUp ? t('backupInProgress') : t('downloadBackup')}
+                </button>
+              </div>
             </div>
 
             {/* Restore Backup */}
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-4 h-full w-full">
+              <div className="flex items-center gap-3 mb-2">
                 <span
                   className="p-2 rounded-lg shrink-0"
                   style={{ background: '#dc2626' }}
@@ -199,8 +201,8 @@ export default function BackupRestore() {
                 </span>
                 <h3 className="text-base font-bold text-gray-800">{t('restoreBackup')}</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-5 leading-relaxed">{t('restoreBackupDescription')}</p>
-              <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-5 text-center">
+              <p className="text-sm text-gray-900 mb-3 leading-relaxed">{t('restoreBackupDescription')}</p>
+              <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-3 text-center">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -218,22 +220,24 @@ export default function BackupRestore() {
                   {selectedFile ? selectedFile.name : t('noFileSelected')}
                 </p>
               </div>
-              <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 leading-relaxed">
+              <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-800 leading-relaxed">
                 {t('restoreWarning')}
               </div>
-              <button
-                onClick={() => setShowConfirmModal(true)}
-                disabled={!selectedFile || restoring}
-                style={{ ...dangerButtonStyle, opacity: !selectedFile || restoring ? 0.5 : 1, cursor: !selectedFile || restoring ? 'not-allowed' : 'pointer', marginTop: '16px' }}
-                onMouseEnter={handleDangerEnter}
-                onMouseLeave={(e) => handleMouseLeave(e, 'linear-gradient(135deg, #ffffff 0%, #fef2f2 100%) padding-box, #dc2626 border-box', '#7f1d1d')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M17 12a5 5 0 0 1-10 0"></path>
-                  <line x1="12" y1="2" x2="12" y2="12"></line>
-                </svg>
-                {restoring ? t('restoreInProgress') : t('restoreNow')}
-              </button>
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={() => setShowConfirmModal(true)}
+                  disabled={!selectedFile || restoring}
+                  style={{ ...dangerButtonStyle, opacity: !selectedFile || restoring ? 0.5 : 1, cursor: !selectedFile || restoring ? 'not-allowed' : 'pointer' }}
+                  onMouseEnter={handleDangerEnter}
+                  onMouseLeave={(e) => handleMouseLeave(e, 'linear-gradient(135deg, #ffffff 0%, #fef2f2 100%) padding-box, #dc2626 border-box', '#7f1d1d')}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 12a5 5 0 0 1-10 0"></path>
+                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                  </svg>
+                  {restoring ? t('restoreInProgress') : t('restoreNow')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
