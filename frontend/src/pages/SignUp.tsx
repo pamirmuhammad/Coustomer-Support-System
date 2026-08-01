@@ -45,7 +45,9 @@ export default function SignUp() {
   // Current UI language (English/Dari/Pashto)
   const [language, setLanguage] = useState(() => {
     const savedLanguage = localStorage.getItem('selectedLanguage');
-    return savedLanguage || 'English';
+    if (savedLanguage) return savedLanguage;
+    const code = localStorage.getItem('language');
+    return code === 'fa' ? 'Dari' : code === 'ps' ? 'Pashto' : 'English';
   });
   const navigate = useNavigate();
   const { i18n, t } = useTranslation();
@@ -61,24 +63,18 @@ export default function SignUp() {
   useEffect(() => {
   }, []);
 
+  // Keep i18n language in sync with the dropdown (on mount and on change)
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    if (savedLanguage) {
-      const langCode = savedLanguage === 'English' ? 'en' : savedLanguage === 'Dari' ? 'fa' : 'ps';
-      i18n.changeLanguage(langCode);
-      document.documentElement.dir = langCode === 'en' ? 'ltr' : 'rtl';
-      document.documentElement.lang = langCode;
-    }
-  }, [i18n]);
+    const langCode = language === 'English' ? 'en' : language === 'Dari' ? 'fa' : 'ps';
+    i18n.changeLanguage(langCode);
+    document.documentElement.dir = langCode === 'en' ? 'ltr' : 'rtl';
+    document.documentElement.lang = langCode;
+    localStorage.setItem('selectedLanguage', language);
+  }, [i18n, language]);
 
   // Switch interface language and persist preference
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
-    const langCode = lang === 'English' ? 'en' : lang === 'Dari' ? 'fa' : 'ps';
-    i18n.changeLanguage(langCode);
-    document.documentElement.dir = langCode === 'en' ? 'ltr' : 'rtl';
-    document.documentElement.lang = langCode;
-    localStorage.setItem('selectedLanguage', lang);
   };
 
   // Ensure data loads only once on mount
