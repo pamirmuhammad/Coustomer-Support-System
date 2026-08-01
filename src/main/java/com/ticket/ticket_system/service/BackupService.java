@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -32,14 +33,20 @@ public class BackupService {
     private static final Pattern JDBC_URL_PATTERN =
             Pattern.compile("jdbc:postgresql://([^:/]+):?(\\d+)?/([^?]+)");
 
-    @Value("${DB_URL:jdbc:postgresql://localhost:5432/ticket_system}")
+    @Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/ticket_system}")
     private String dbUrl;
 
-    @Value("${DB_USERNAME:postgres}")
+    @Value("${spring.datasource.username:postgres}")
     private String dbUsername;
 
-    @Value("${DB_PASSWORD:}")
+    @Value("${spring.datasource.password:}")
     private String dbPassword;
+
+    @Value("${app.backup.pg-dump-path:}")
+    private String pgDumpPath;
+
+    @Value("${app.backup.psql-path:}")
+    private String psqlPath;
 
     private record DbConfig(String host, String port, String database, String username, String password) {
     }
@@ -53,7 +60,7 @@ public class BackupService {
     public Path createBackup() throws IOException {
         DbConfig config = parseDbUrl();
         List<String> command = new ArrayList<>(List.of(
-                "pg_dump",
+                resolvePgDump(),
                 "--no-owner",
                 "--no-privileges",
                 "--clean",
@@ -117,7 +124,7 @@ public class BackupService {
     private void restoreFromFile(Path dumpFile) throws IOException {
         DbConfig config = parseDbUrl();
         List<String> command = new ArrayList<>(List.of(
-                "psql",
+                resolvePsql(),
                 "-v", "ON_ERROR_STOP=1",
                 "--single-transaction",
                 "-h", config.host(),
@@ -152,6 +159,78 @@ public class BackupService {
                 process.destroyForcibly();
             }
         }
+    }
+
+    private String resolvePgDump() throws IOException {
+        return resolveTool(pgDumpPath, "pg_dump");
+    }
+
+    private String resolvePsql() throws IOException {
+        return resolveTool(psqlPath, "psql");
+    }
+
+    private String resolveTool(String configured, String tool) throws IOException {
+        if (configured != null && !configured.isBlank() && Files.isRegularFile(Path.of(configured))) {
+            return configured;
+        }
+        String exe = isWindows() ? tool + ".exe" : tool;
+        String pathEnv = System.getenv("PATH");
+        if (pathEnv != null) {
+            for (String dir : pathEnv.split(Pattern.quote(File.pathSeparator))) {
+                if (dir == null || dir.isBlank()) {
+                    continue;
+                }
+                Path candidate = Path.of(dir.trim(), exe);
+                if (Files.isRegularFile(candidate)) {
+                    return candidate.toString();
+                }
+            }
+        }
+        for (String dir : probeDirs()) {
+            Path candidate = Path.of(dir, exe);
+            if (Files.isRegularFile(candidate)) {
+                return candidate.toString();
+            }
+        }
+        throw new IOException("Could not locate " + tool + ". Install PostgreSQL client tools or set app.backup."
+                + (isPgDump(tool) ? "pg-dump-path" : "psql-path") + ".");
+    }
+
+    private boolean isPgDump(String tool) {
+        return "pg_dump".equals(tool);
+    }
+
+    private List<String> probeDirs() {
+        List<String> bases = new ArrayList<>();
+        if (isWindows()) {
+            bases.add("C:\\Program Files\\PostgreSQL");
+            bases.add("C:\\Program Files (x86)\\PostgreSQL");
+        } else {
+            bases.add("/usr/lib/postgresql");
+            bases.add("/usr/local/pgsql");
+        }
+        List<String> result = new ArrayList<>();
+        for (String base : bases) {
+            File baseFile = new File(base);
+            if (!baseFile.isDirectory()) {
+                continue;
+            }
+            File[] children = baseFile.listFiles();
+            if (children == null) {
+                continue;
+            }
+            for (File child : children) {
+                if (child.isDirectory()) {
+                    result.add(new File(child, "bin").getAbsolutePath());
+                    result.add(child.getAbsolutePath());
+                }
+            }
+        }
+        return result;
+    }
+
+    private boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase().contains("win");
     }
 
     private DbConfig parseDbUrl() {
