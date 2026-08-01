@@ -18,10 +18,10 @@ const [showOTP, setShowOTP] = useState(false);
   const [step, setStep] = useState(1);
   // Loading state for async operations
   const [loading, setLoading] = useState(false);
-  // Error message to display
-  const [error, setError] = useState('');
-  // Success message to display
-  const [message, setMessage] = useState('');
+  // Error message to display (translation key or raw server text)
+  const [error, setError] = useState<{ key: string } | { raw: string } | null>(null);
+  // Success message to display (translation key or raw server text)
+  const [message, setMessage] = useState<{ key: string } | { raw: string } | null>(null);
   // Current UI language (English/Dari/Pashto)
   const [language, setLanguage] = useState(() => {
     const savedLanguage = localStorage.getItem('selectedLanguage');
@@ -50,15 +50,15 @@ const [showOTP, setShowOTP] = useState(false);
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
+    setError(null);
+    setMessage(null);
 
     try {
       await authAPI.forgotPassword(email);
-      setMessage(t('otpSentToEmail'));
+      setMessage({ key: 'otpSentToEmail' });
       setStep(2);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('errorSendingOTP'));
+      setError(err instanceof Error ? { raw: err.message } : { key: 'errorSendingOTP' });
     } finally {
       setLoading(false);
     }
@@ -68,15 +68,15 @@ const [showOTP, setShowOTP] = useState(false);
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
+    setError(null);
+    setMessage(null);
 
     try {
       await authAPI.verifyOTP(email, otp);
-      setMessage(t('otpVerified'));
+      setMessage({ key: 'otpVerified' });
       setStep(3);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('invalidOTP'));
+      setError(err instanceof Error ? { raw: err.message } : { key: 'invalidOTP' });
     } finally {
       setLoading(false);
     }
@@ -86,17 +86,17 @@ const [showOTP, setShowOTP] = useState(false);
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
+    setError(null);
+    setMessage(null);
 
     try {
       await authAPI.resetPassword(email, otp, newPassword);
-      setMessage(t('passwordResetSuccess'));
+      setMessage({ key: 'passwordResetSuccess' });
       setTimeout(() => {
         navigate('/signin');
       }, 2000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('errorResettingPassword'));
+      setError(err instanceof Error ? { raw: err.message } : { key: 'errorResettingPassword' });
     } finally {
       setLoading(false);
     }
@@ -133,8 +133,8 @@ const [showOTP, setShowOTP] = useState(false);
           </div>
           <h1>{t('forgotPasswordPage')}</h1>
         </div>
-        {error && <div className="error-message">{error}</div>}
-        {message && <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px 14px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', border: '1px solid #bbf7d0' }}>{message}</div>}
+        {error && <div className="error-message">{'key' in error ? t(error.key) : error.raw}</div>}
+        {message && <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px 14px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', border: '1px solid #bbf7d0' }}>{'key' in message ? t(message.key) : message.raw}</div>}
         
         {step === 1 && (
           <form onSubmit={handleSendOTP}>
