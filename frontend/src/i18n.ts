@@ -513,6 +513,27 @@ const enTranslations = {
   bulkActions: 'Bulk Actions',
   columns: 'Columns',
   errorFetchingNotifications: 'Failed to fetch notifications',
+
+  // Backup & Restore
+  backupRestore: 'Backup & Restore',
+  createBackup: 'Create Backup',
+  createBackupDescription: 'Download a complete backup of the entire database, including all users, tickets, services, and settings. Keep the file safe so you can restore it when needed.',
+  downloadBackup: 'Download Backup',
+  backupInProgress: 'Creating backup...',
+  backupDownloaded: 'Backup downloaded successfully',
+  backupFailed: 'Failed to create backup. Please try again.',
+  restoreBackup: 'Restore Backup',
+  restoreBackupDescription: 'Restore the database from a previously downloaded .sql backup file. This replaces all current data with the backup content.',
+  selectBackupFile: 'Select a backup file (.sql)',
+  noFileSelected: 'No file selected',
+  invalidBackupFile: 'Invalid file. Only .sql backup files are supported.',
+  restoreWarning: 'Warning: Restoring will permanently replace all current data with the content of the backup file. Make sure you have downloaded a fresh backup before restoring.',
+  restoreNow: 'Restore',
+  restoreInProgress: 'Restoring...',
+  restoreConfirmTitle: 'Confirm Restore',
+  restoreConfirmMessage: 'Are you sure you want to restore this backup? All current data will be permanently replaced.',
+  restoreSuccess: 'Database restored successfully',
+  restoreFailed: 'Failed to restore backup. Please try again.',
 };
 
 // Dari translations
@@ -965,6 +986,27 @@ const faTranslations = {
   ticketUnassigned: 'تیکت تخصیص داده نشد',
   warning: 'اخطار',
   info: 'اطلاعات',
+
+  // Backup & Restore
+  backupRestore: 'پشتیبان‌گیری و بازیابی',
+  createBackup: 'ایجاد نسخه پشتیبان',
+  createBackupDescription: 'یک نسخه پشتیبان کامل از کل دیتابیس شامل همه کاربران، تیکت‌ها، خدمات و تنظیمات دانلود کنید. فایل را امن نگه دارید تا در صورت نیاز آن را بازیابی کنید.',
+  downloadBackup: 'دانلود نسخه پشتیبان',
+  backupInProgress: 'در حال ایجاد نسخه پشتیبان...',
+  backupDownloaded: 'نسخه پشتیبان با موفقیت دانلود شد',
+  backupFailed: 'ایجاد نسخه پشتیبان ناکام ماند. لطفاً دوباره تلاش کنید.',
+  restoreBackup: 'بازیابی نسخه پشتیبان',
+  restoreBackupDescription: 'دیتابیس را از فایل پشتیبان .sql که قبلاً دانلود کرده‌اید بازیابی کنید. این کار تمام داده‌های فعلی را با محتوای پشتیبان جایگزین می‌کند.',
+  selectBackupFile: 'انتخاب فایل پشتیبان (.sql)',
+  noFileSelected: 'هیچ فایلی انتخاب نشده است',
+  invalidBackupFile: 'فایل نامعتبر است. فقط فایل‌های پشتیبان .sql پشتیبانی می‌شوند.',
+  restoreWarning: 'هشدار: بازیابی به طور دائم تمام داده‌های فعلی را با محتوای فایل پشتیبان جایگزین می‌کند. قبل از بازیابی حتماً یک نسخه پشتیبان جدید دانلود کنید.',
+  restoreNow: 'بازیابی',
+  restoreInProgress: 'در حال بازیابی...',
+  restoreConfirmTitle: 'تأیید بازیابی',
+  restoreConfirmMessage: 'آیا مطمئن هستید که می‌خواهید این نسخه پشتیبان را بازیابی کنید؟ تمام داده‌های فعلی به طور دائم جایگزین می‌شوند.',
+  restoreSuccess: 'دیتابیس با موفقیت بازیابی شد',
+  restoreFailed: 'بازیابی نسخه پشتیبان ناکام ماند. لطفاً دوباره تلاش کنید.',
 };
 
 // Pashto translations
@@ -1420,6 +1462,27 @@ const psTranslations = {
   errorFetchingTickets: 'د ټیکټونو راوړل ناکام شول',
   errorFetchingAssignedTickets: 'د ورکړل شویو ټیکټونو راوړل ناکام شول',
   errorUpdatingTicketStatus: 'د ټیکټ حالت تازه کول ناکام شول',
+
+  // Backup & Restore
+  backupRestore: 'بیک اپ او بېرته راګرځونه',
+  createBackup: 'بیک اپ جوړول',
+  createBackupDescription: 'د ټولې ډیټابیس بشپړ بیک اپ ډاونلوډ کړئ، په شمول د ټولو کاروونکو، ټیکټونو، خدماتو او تنظیماتو. فایل خوندي وساتئ تر څو کله اړتیا وشي بېرته یې راوګرځوئ.',
+  downloadBackup: 'بیک اپ ډاونلوډ کړئ',
+  backupInProgress: 'بیک اپ جوړېږي...',
+  backupDownloaded: 'بیک اپ په بریالیتوب سره ډاونلوډ شو',
+  backupFailed: 'بیک اپ جوړول ناکام شول. مهرباني وکړئ بیا هڅه وکړئ.',
+  restoreBackup: 'بیک اپ بېرته راوګرځول',
+  restoreBackupDescription: 'ډیټابیس له هغه .sql بیک اپ فایل څخه بېرته راوګرځوئ چې مخکې یې ډاونلوډ کړی. دا به ټول اوسني معلومات د بیک اپ له منځپانګې سره بدل کړي.',
+  selectBackupFile: 'د بیک اپ فایل (.sql) غوره کړئ',
+  noFileSelected: 'هیڅ فایل نه دی ټاکل شوی',
+  invalidBackupFile: 'فایل ناسم دی. یوازې د .sql بیک اپ فایلونو ملاتړ کیږي.',
+  restoreWarning: 'خبرتیا: بېرته راګرځول به ټول اوسني معلومات د بیک اپ فایل له منځپانګې سره په دایمي توګه بدل کړي. ډاډه اوسئ چې د بیک اپ کولو دمخه یو نوی بیک اپ ډاونلوډ کړی دی.',
+  restoreNow: 'بېرته راوګرځول',
+  restoreInProgress: 'بېرته راګرځول کېږي...',
+  restoreConfirmTitle: 'بېرته راګرځونه تایید کړئ',
+  restoreConfirmMessage: 'ایا تاسو ډاډه یاست چې غواړئ دا بیک اپ بېرته راوګرځوئ؟ ټول اوسني معلومات به په دایمي توګه بدل شي.',
+  restoreSuccess: 'ډیټابیس په بریالیتوب سره بېرته راوګرځول شو',
+  restoreFailed: 'بیک اپ بېرته راوګرځول ناکام شول. مهرباني وکړئ بیا هڅه وکړئ.',
 };
 
 i18n

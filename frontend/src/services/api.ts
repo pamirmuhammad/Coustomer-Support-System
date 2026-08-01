@@ -96,6 +96,19 @@ export const adminAPI = {
     api.get('/admin/dashboard-summary'),
 };
 
+export const backupAPI = {
+  download: () =>
+    api.get('/admin/backup/download', { responseType: 'blob' }),
+  restore: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/admin/backup/restore', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 300000,
+    });
+  },
+};
+
 export const authAPI = {
   login: (username: string, password: string) =>
     api.post('/auth/login', { username, password }),

@@ -22,6 +22,7 @@ const CreateRole = lazy(() => import('./pages/CreateRole'));
 const CreateUser = lazy(() => import('./pages/CreateUser'));
 const AdminMyTickets = lazy(() => import('./pages/AdminMyTickets'));
 const ForcePasswordChange = lazy(() => import('./pages/ForcePasswordChange'));
+const BackupRestore = lazy(() => import('./pages/BackupRestore'));
 
 // Route guard component – redirects unauthenticated users to /signin and unauthorized users to /unauthorized
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) {
@@ -174,6 +175,11 @@ function App() {
             <Route path="/admin/create-user" element={
               <PrivateRoute allowedRoles={['ADMIN']}>
                 <CreateUser />
+              </PrivateRoute>
+            } />
+            <Route path="/admin/backup-restore" element={
+              <PrivateRoute allowedRoles={['ADMIN']}>
+                <BackupRestore />
               </PrivateRoute>
             } />
             
