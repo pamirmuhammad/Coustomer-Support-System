@@ -15,7 +15,9 @@ interface Organization {
   name: string;
 }
 
-// SignUp — user registration with role selection, org search, and language toggle
+const RESEND_COOLDOWN_SECONDS = 60;
+
+// SignUp — user registration with email OTP verification (form → OTP → create account)
 export default function SignUp() {
   // Registration form fields
   const [formData, setFormData] = useState({
@@ -28,14 +30,20 @@ export default function SignUp() {
     roleId: '',
     organizationId: '',
   });
+  // Email verification step: 1 = form, 2 = OTP
+  const [step, setStep] = useState(1);
+  const [otp, setOtp] = useState('');
+  const [showOTP, setShowOTP] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
   // Available roles and organizations from API
   const [roles, setRoles] = useState<Role[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   // Organization search and dropdown visibility
   const [orgSearch, setOrgSearch] = useState('');
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
-  // Error message display
-  const [error, setError] = useState('');
+  // Error / info message display (translation keys)
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const { show, ToastContainer } = useSimpleToast();
   // Loading state for submit button
   const [loading, setLoading] = useState(false);
@@ -52,6 +60,7 @@ export default function SignUp() {
   const navigate = useNavigate();
   const { i18n, t } = useTranslation();
   const isRtl = i18n.dir() === 'rtl';
+  const resendTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Filtered org list based on search text
   const filteredOrgs = useMemo(() => {
@@ -61,6 +70,13 @@ export default function SignUp() {
   }, [organizations, orgSearch]);
 
   useEffect(() => {
+  }, []);
+
+  // Clear the resend countdown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (resendTimer.current) clearInterval(resendTimer.current);
+    };
   }, []);
 
   // Keep i18n language in sync with the dropdown (on mount and on change)
@@ -104,30 +120,98 @@ export default function SignUp() {
     }
   }, []);
 
-  // Register a new user with password validation
+  // Translate backend error messages and validation failures
+  const getErrorMessage = (err: unknown): string => {
+    const axiosErr = err as { response?: { data?: Record<string, unknown> | string } };
+    const data = axiosErr.response?.data;
+    let message = typeof data === 'string' ? data : undefined;
+    if (!message && typeof data === 'object') {
+      const obj = data as Record<string, unknown>;
+      message = obj.message as string;
+      if (!message) {
+        const fieldErrors = Object.entries(obj)
+          .filter(([k]) => k !== 'timestamp' && k !== 'status' && k !== 'error' && k !== 'path')
+          .map(([k, v]) => `${k}: ${v}`);
+        if (fieldErrors.length > 0) {
+          message = fieldErrors.join('; ');
+        }
+      }
+    }
+    const msg = message || '';
+    const lower = msg.toLowerCase();
+    if (lower.includes('email already exists')) return t('emailAlreadyRegistered');
+    if (lower.includes('invalid or expired otp')) return t('invalidOTP');
+    if (lower.includes('too many failed attempts')) return t('tooManyFailedAttempts');
+    if (lower.includes('unable to send verification code')) return t('errorSendingOTP');
+    if (msg) return msg;
+    return t('registrationFailed');
+  };
+
+  const startResendCountdown = (seconds: number = RESEND_COOLDOWN_SECONDS) => {
+    setResendIn(seconds);
+    if (resendTimer.current) clearInterval(resendTimer.current);
+    resendTimer.current = setInterval(() => {
+      setResendIn(prev => {
+        if (prev <= 1) {
+          if (resendTimer.current) clearInterval(resendTimer.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Step 1: validate the form and send the email verification OTP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
+    setError(null);
+    setMessage(null);
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      setLoading(false);
+      setError(t('passwordMinLength'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
+      setError(t('passwordsDoNotMatch'));
       return;
     }
 
     if (!formData.organizationId) {
-      setError('Please select an organization');
-      setLoading(false);
+      setError(t('pleaseSelectOrganization'));
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError(t('pleaseEnterValidEmail'));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authAPI.signupSendOtp(formData.email);
+      setMessage('otpSentToEmail');
+      setStep(2);
+      startResendCountdown();
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: verify the OTP and create the account
+  const handleVerifyAndCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+
+    if (otp.length !== 6) {
+      setError(t('EnterOTP'));
+      return;
+    }
+
+    setLoading(true);
     try {
       const payload = {
         fullName: formData.fullName,
@@ -137,27 +221,29 @@ export default function SignUp() {
         password: formData.password,
         roleId: formData.roleId ? parseInt(formData.roleId) : undefined,
         organizationId: formData.organizationId ? parseInt(formData.organizationId) : undefined,
+        otp,
       };
-        await authAPI.signup(payload);
+      await authAPI.signup(payload);
       show('success', t('success'), t('registrationSuccess'));
       setTimeout(() => navigate('/signin'), 2000);
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: Record<string, unknown> | string } };
-      const data = axiosErr.response?.data;
-      let message = typeof data === 'string' ? data : undefined;
-      if (!message && typeof data === 'object') {
-        const obj = data as Record<string, unknown>;
-        message = obj.message as string;
-        if (!message) {
-          const fieldErrors = Object.entries(obj)
-            .filter(([k]) => k !== 'timestamp' && k !== 'status' && k !== 'error' && k !== 'path')
-            .map(([k, v]) => `${k}: ${v}`);
-          if (fieldErrors.length > 0) {
-            message = fieldErrors.join('; ');
-          }
-        }
-      }
-      setError(message || 'Failed to create account');
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resend the email verification OTP
+  const handleResend = async () => {
+    setError(null);
+    setMessage(null);
+    setLoading(true);
+    try {
+      await authAPI.signupSendOtp(formData.email);
+      setMessage('otpSentToEmail');
+      startResendCountdown();
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -242,165 +328,231 @@ export default function SignUp() {
           <div className="auth-logo">
             <img src="/logo.gif" alt={t('logo')} />
           </div>
-          <h1>{t('signUpPage')}</h1>
+          <h1>{step === 1 ? t('signUpPage') : t('verifyEmailTitle')}</h1>
         </div>
         {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit} autoComplete="off">
-          {/* Row 1: Full Name & Username */}
-          <div className="signup-row" style={rowStyle}>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('fullName')}</label>
-              <input
-                type="text"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                required
-                placeholder={t('Enter Full Name')}
-                style={inputStyle}
-              />
-            </div>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('username')}</label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-                placeholder={t('Enter User Name')}
-                style={inputStyle}
-              />
-            </div>
-          </div>
+        {message && <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px 14px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', border: '1px solid #bbf7d0' }}>{t(message)}</div>}
 
-          {/* Row 2: Email & Phone */}
-          <div className="signup-row" style={rowStyle}>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('email')}</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                placeholder={t('Enter Email')}
-                style={inputStyle}
-              />
-            </div>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('phone')}</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9+]/g, '').slice(0, 15);
-                    setFormData({ ...formData, phone: val });
-                  }}
-                  placeholder={t('+93')}
-                  style={{ ...inputStyle, textAlign: isRtl ? 'right' : 'left' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Row 3: Password & Confirm Password */}
-          <div className="signup-row" style={rowStyle}>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('password')}</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  placeholder={t('enterPassword')}
-                  minLength={8}
-                  autoComplete="new-password"
-                  style={{ ...inputStyle, [isRtl ? 'paddingLeft' : 'paddingRight']: '36px' }}
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} style={toggleBtnStyle}>
-                  <PasswordEyeIcon visible={showPassword} />
-                </button>
-              </div>
-            </div>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('confirmPassword') || 'Confirm Password'}</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  required
-                  placeholder={t('confirmPassword') || 'Confirm Password'}
-                  autoComplete="new-password"
-                  style={{ ...inputStyle, [isRtl ? 'paddingLeft' : 'paddingRight']: '36px' }}
-                />
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={toggleBtnStyle}>
-                  <PasswordEyeIcon visible={showConfirmPassword} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 4: Role & Organization */}
-          <div className="signup-row" style={rowStyle}>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('role')}</label>
-              <select
-                value={formData.roleId}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
-              >
-                {roles.map((role: Role) => (
-                  <option key={role.id} value={role.id}>{role.name}</option>
-                ))}
-              </select>
-            </div>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{t('organizations')}</label>
-              <div style={{ position: 'relative' }}>
+        {step === 1 ? (
+          <form onSubmit={handleSubmit} autoComplete="off">
+            {/* Row 1: Full Name & Username */}
+            <div className="signup-row" style={rowStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('fullName')}</label>
                 <input
                   type="text"
-                  value={orgSearch}
-                  onChange={(e) => { setOrgSearch(e.target.value); setShowOrgDropdown(true); setFormData({ ...formData, organizationId: '' }); }}
-                  onFocus={() => setShowOrgDropdown(true)}
-                  onBlur={() => setTimeout(() => setShowOrgDropdown(false), 200)}
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   required
-                  placeholder={t('selectOrganization') || 'Select Organization'}
+                  placeholder={t('Enter Full Name')}
                   style={inputStyle}
                 />
-                {showOrgDropdown && (
-                  <div style={{ position: 'absolute', zIndex: 10, width: '100%', marginTop: '4px', background: 'white', border: '1px solid #d1d5db', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', maxHeight: '200px', overflowY: 'auto' }}>
-                    {filteredOrgs.length > 0 ? filteredOrgs.map((org: Organization) => (
-                      <div
-                        key={org.id}
-                        onMouseDown={() => {
-                          setFormData({ ...formData, organizationId: String(org.id) });
-                          setOrgSearch(org.name);
-                          setShowOrgDropdown(false);
-                        }}
-                        style={{ padding: '8px 12px', cursor: 'pointer', fontSize: '14px', color: formData.organizationId === String(org.id) ? '#1d4ed8' : '#000000', backgroundColor: formData.organizationId === String(org.id) ? '#dbeafe' : 'transparent' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2b51b1'; e.currentTarget.style.color = '#ffffff'; }}
-                        onMouseLeave={(e) => {
-                          const isSelected = formData.organizationId === String(org.id);
-                          e.currentTarget.style.backgroundColor = isSelected ? '#dbeafe' : 'transparent';
-                          e.currentTarget.style.color = isSelected ? '#1d4ed8' : '#000000';
-                        }}
-                      >
-                        {org.name}
-                      </div>
-                    )) : (
-                      <div style={{ padding: '8px 12px', fontSize: '14px', color: '#6b7280' }}>{t('noOrganizationsMatch') || 'No organizations found'}</div>
-                    )}
-                  </div>
-                )}
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('username')}</label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  required
+                  placeholder={t('Enter User Name')}
+                  style={inputStyle}
+                />
               </div>
             </div>
-          </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', marginTop: '8px' }}>
-            {loading ? t('creatingAccount') : t('signUp')}
-          </button>
-        </form>
+            {/* Row 2: Email & Phone */}
+            <div className="signup-row" style={rowStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('email')}</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  placeholder={t('Enter Email')}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('phone')}</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9+]/g, '').slice(0, 15);
+                      setFormData({ ...formData, phone: val });
+                    }}
+                    placeholder={t('+93')}
+                    style={{ ...inputStyle, textAlign: isRtl ? 'right' : 'left' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Row 3: Password & Confirm Password */}
+            <div className="signup-row" style={rowStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('password')}</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                    placeholder={t('enterPassword')}
+                    minLength={8}
+                    autoComplete="new-password"
+                    style={{ ...inputStyle, [isRtl ? 'paddingLeft' : 'paddingRight']: '36px' }}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={toggleBtnStyle}>
+                    <PasswordEyeIcon visible={showPassword} />
+                  </button>
+                </div>
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('confirmPassword') || 'Confirm Password'}</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    required
+                    placeholder={t('confirmPassword') || 'Confirm Password'}
+                    autoComplete="new-password"
+                    style={{ ...inputStyle, [isRtl ? 'paddingLeft' : 'paddingRight']: '36px' }}
+                  />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={toggleBtnStyle}>
+                    <PasswordEyeIcon visible={showConfirmPassword} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 4: Role & Organization */}
+            <div className="signup-row" style={rowStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('role')}</label>
+                <select
+                  value={formData.roleId}
+                  disabled
+                  style={{ ...inputStyle, backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                >
+                  {roles.map((role: Role) => (
+                    <option key={role.id} value={role.id}>{role.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>{t('organizations')}</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={orgSearch}
+                    onChange={(e) => { setOrgSearch(e.target.value); setShowOrgDropdown(true); setFormData({ ...formData, organizationId: '' }); }}
+                    onFocus={() => setShowOrgDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowOrgDropdown(false), 200)}
+                    required
+                    placeholder={t('selectOrganization') || 'Select Organization'}
+                    style={inputStyle}
+                  />
+                  {showOrgDropdown && (
+                    <div style={{ position: 'absolute', zIndex: 10, width: '100%', marginTop: '4px', background: 'white', border: '1px solid #d1d5db', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', maxHeight: '200px', overflowY: 'auto' }}>
+                      {filteredOrgs.length > 0 ? filteredOrgs.map((org: Organization) => (
+                        <div
+                          key={org.id}
+                          onMouseDown={() => {
+                            setFormData({ ...formData, organizationId: String(org.id) });
+                            setOrgSearch(org.name);
+                            setShowOrgDropdown(false);
+                          }}
+                          style={{ padding: '8px 12px', cursor: 'pointer', fontSize: '14px', color: formData.organizationId === String(org.id) ? '#1d4ed8' : '#000000', backgroundColor: formData.organizationId === String(org.id) ? '#dbeafe' : 'transparent' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2b51b1'; e.currentTarget.style.color = '#ffffff'; }}
+                          onMouseLeave={(e) => {
+                            const isSelected = formData.organizationId === String(org.id);
+                            e.currentTarget.style.backgroundColor = isSelected ? '#dbeafe' : 'transparent';
+                            e.currentTarget.style.color = isSelected ? '#1d4ed8' : '#000000';
+                          }}
+                        >
+                          {org.name}
+                        </div>
+                      )) : (
+                        <div style={{ padding: '8px 12px', fontSize: '14px', color: '#6b7280' }}>{t('noOrganizationsMatch') || 'No organizations found'}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', marginTop: '8px' }}>
+              {loading ? t('sending') : t('signUp')}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyAndCreate} autoComplete="off">
+            <p style={{ textAlign: 'center', color: '#475569', fontSize: '14px', marginBottom: '6px' }}>
+              {t('otpSentToEmailDescription')} <strong style={{ color: '#2b51b1' }}>{formData.email}</strong>
+            </p>
+            <div className="form-group" style={{ marginTop: '16px' }}>
+              <label className={otp ? 'visible' : ''}>{t('otpCode')}:</label>
+              <input
+                type={showOTP ? 'text' : 'password'}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                required
+                placeholder={t('EnterOTP')}
+                maxLength={6}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                style={{ paddingRight: '30px', textAlign: 'center', letterSpacing: '8px', fontSize: '20px' }}
+              />
+              <div className="input-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOTP(!showOTP)}
+                className="password-toggle-btn"
+              >
+                {showOTP ? (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                ) : (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', marginTop: '8px' }}>
+              {loading ? t('creatingAccount') : t('verifyAndCreateAccount')}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendIn > 0 || loading}
+              style={{ marginTop: '10px', background: 'none', border: 'none', color: resendIn > 0 ? '#94a3b8' : '#2b51b1', cursor: resendIn > 0 ? 'not-allowed' : 'pointer', fontSize: '14px', display: 'block', width: '100%', textAlign: 'center' }}
+            >
+              {resendIn > 0 ? t('resendCodeIn', { seconds: resendIn }) : t('resendCode')}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setStep(1); setMessage(null); setOtp(''); }}
+              style={{ marginTop: '6px', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px', display: 'block', width: '100%', textAlign: 'center' }}
+            >
+              {t('backToForm')}
+            </button>
+          </form>
+        )}
         <p className="auth-link">
           {t('alreadyHaveAccount')} <Link to="/signin">{t('signIn')}</Link>
         </p>

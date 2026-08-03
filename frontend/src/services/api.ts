@@ -116,6 +116,10 @@ export const authAPI = {
     apiCache.invalidate('users');
     return api.post('/auth/signup', data);
   },
+  signupSendOtp: (email: string) =>
+    api.post('/auth/signup/send-otp', { email }),
+  verifySignupOTP: (email: string, otp: string) =>
+    api.post('/auth/signup/verify-otp', { email, otp }),
   forgotPassword: (email: string) =>
     api.post('/auth/forgot-password', { email }),
   verifyOTP: (email: string, otp: string) =>
@@ -285,6 +289,7 @@ interface SignupData {
   phone?: string;
   roleId?: number;
   organizationId?: number;
+  otp: string;
 }
 
 interface ServiceData {

@@ -50,6 +50,33 @@ public class EmailService {
         }
     }
 
+    public void sendSignupOtpEmail(String toEmail, String otp, int expiryMinutes) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Email Verification OTP - Customer Support System");
+            helper.setText(
+                "<!DOCTYPE html><html><body style=\"font-family: Arial, sans-serif; padding: 20px;\">" +
+                "<h2 style=\"color: #2b51b1;\">Email Verification</h2>" +
+                "<p>Thank you for registering with the Customer Support System.</p>" +
+                "<p>Use the OTP below to verify your email address and complete your registration.</p>" +
+                "<p style=\"font-size: 24px; font-weight: bold; color: #2b51b1; letter-spacing: 4px;\">" + otp + "</p>" +
+                "<p>This OTP will expire in " + expiryMinutes + " minutes.</p>" +
+                "<p>If you did not start this registration, please ignore this email.</p>" +
+                "<hr><p style=\"color: #666; font-size: 12px;\">Customer Support System</p>" +
+                "</body></html>",
+                true
+            );
+            mailSender.send(message);
+            log.info("Signup OTP email sent to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send signup OTP email to: {}", toEmail, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to send OTP. Please try again.");
+        }
+    }
+
     @Async
     public void sendNotificationEmail(String toEmail, String subject, String body) {
         try {

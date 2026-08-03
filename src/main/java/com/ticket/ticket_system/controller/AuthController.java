@@ -5,6 +5,7 @@ import com.ticket.ticket_system.dto.AuthResponse;
 import com.ticket.ticket_system.dto.ForgotPasswordRequest;
 
 import com.ticket.ticket_system.dto.ResetPasswordRequest;
+import com.ticket.ticket_system.dto.SendSignupOtpRequest;
 import com.ticket.ticket_system.dto.SignupRequest;
 import com.ticket.ticket_system.dto.VerifyOTPRequest;
 import com.ticket.ticket_system.entity.RefreshToken;
@@ -19,6 +20,7 @@ import com.ticket.ticket_system.service.AuditLogService;
 import com.ticket.ticket_system.service.EmailService;
 import com.ticket.ticket_system.service.PasswordResetService;
 import com.ticket.ticket_system.service.RefreshTokenService;
+import com.ticket.ticket_system.service.SignupVerificationService;
 import com.ticket.ticket_system.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -58,6 +60,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final PasswordResetService passwordResetService;
+    private final SignupVerificationService signupVerificationService;
     private final RoleRepository roleRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
@@ -229,9 +232,37 @@ public class AuthController {
         };
     }
 
+    @PostMapping("/signup/send-otp")
+    @Operation(summary = "Send signup verification OTP", description = "Sends a verification OTP to the given email before creating an account")
+    public ResponseEntity<?> sendSignupOtp(@Valid @RequestBody SendSignupOtpRequest request) {
+        try {
+            signupVerificationService.sendOtp(request.getEmail());
+            return ResponseEntity.ok("If the email is not already registered, an OTP has been sent to verify it.");
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("message", e.getReason()));
+        } catch (Exception e) {
+            log.error("Failed to send signup OTP for email: {}", request.getEmail(), e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Unable to send verification code. Please try again."));
+        }
+    }
+
+    @PostMapping("/signup/verify-otp")
+    @Operation(summary = "Verify signup OTP", description = "Verifies the signup OTP sent to the email address")
+    public ResponseEntity<?> verifySignupOtp(@Valid @RequestBody VerifyOTPRequest request) {
+        try {
+            signupVerificationService.verifyOtp(request.getEmail(), request.getOtp());
+            return ResponseEntity.ok("OTP verified successfully");
+        } catch (Exception e) {
+            log.error("Signup OTP verification failed for email: {}", request.getEmail());
+            return ResponseEntity.badRequest().body("Invalid or expired OTP.");
+        }
+    }
+
     @PostMapping("/signup")
-    @Operation(summary = "Register new user", description = "Creates a new user account (inactive until approved by admin)")
+    @Operation(summary = "Register new user", description = "Creates a new user account after email OTP verification (inactive until approved by admin)")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request, HttpServletRequest servletRequest, HttpServletResponse response) {
+        signupVerificationService.verifyAndConsumeOtp(request.getEmail(), request.getOtp());
+
         User user = User.builder()
                 .fullName(request.getFullName())
                 .username(request.getUsername())

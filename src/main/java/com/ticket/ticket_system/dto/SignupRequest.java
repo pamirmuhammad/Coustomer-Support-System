@@ -40,6 +40,11 @@ public class SignupRequest {
     @Size(max = 20)
     private String phone;
 
+    /** Email verification OTP sent during signup */
+    @NotBlank
+    @Size(min = 6, max = 6)
+    private String otp;
+
     /** Role ID to assign */
     private Long roleId;
 
