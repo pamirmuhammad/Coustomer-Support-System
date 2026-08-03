@@ -67,6 +67,50 @@
   }
 }
 
+/* ============================================================
+   Responsive modal fixes (mobile)
+   Every page repeats the same inline modal markup. These global
+   rules fix header/close-button overlap, footer button clipping,
+   and top-clipping of tall modals on small screens (iPhone XS).
+   ============================================================ */
+
+/* 1) Tall modals: use safe centering so the header is never clipped.
+      The overlay scrolls from the top when content exceeds the viewport. */
+.fixed.inset-0.overflow-y-auto.flex.items-center.justify-center {
+  align-items: flex-start;
+}
+
+.fixed.inset-0.overflow-y-auto.flex.items-center.justify-center > .bg-white.rounded-2xl {
+  margin: auto;
+}
+
+/* 2) Header: reserve space for the absolutely-positioned close button so the
+      title never runs underneath it. Works in LTR and RTL (inline-end). */
+.fixed.inset-0.overflow-y-auto .rounded-t-2xl > .flex.items-center.gap-2 {
+  padding-inline-end: 40px;
+  min-width: 0;
+}
+
+.fixed.inset-0.overflow-y-auto .rounded-t-2xl h3 {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* 3) Footer buttons: never clip/hide Cancel — wrap to the next line on narrow
+      screens, and let the buttons share the row width. */
+.fixed.inset-0.overflow-y-auto .flex.gap-3.justify-end,
+.fixed.inset-0.overflow-y-auto .flex.justify-end.gap-3 {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .fixed.inset-0.overflow-y-auto .flex.gap-3.justify-end > button,
+  .fixed.inset-0.overflow-y-auto .flex.justify-end.gap-3 > button {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
 /* Prevent browser autofill blue background */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
