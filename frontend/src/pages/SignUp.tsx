@@ -323,7 +323,7 @@ export default function SignUp() {
         </div>
       </div>
 
-      <div className="auth-card" style={{ maxWidth: '800px' }}>
+      <div className="auth-card" style={{ maxWidth: step === 2 ? '400px' : '800px' }}>
         <div className="auth-header">
           <div className="auth-logo">
             <img src="/logo.gif" alt={t('logo')} />
