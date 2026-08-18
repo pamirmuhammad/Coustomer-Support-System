@@ -155,7 +155,7 @@ PostgreSQL  Redis
 | Variable | Required | Notes |
 |----------|----------|-------|
 | `JWT_SECRET` | Yes | Min 32 chars, no default fallback in prod |
-| `DB_PASSWORD` | Yes | No fallback (was `Admin123@`, now required) |
+| `DB_PASSWORD` | Yes | No fallback (placeholder `change-me`, now required) |
 | `DB_USERNAME` | No | Default: postgres |
 | `STORAGE_TYPE` | No | local or s3 |
 | `SENTRY_DSN` | No | Error tracking |

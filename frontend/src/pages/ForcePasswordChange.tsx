@@ -87,8 +87,8 @@ export default function ForcePasswordChange() {
             style={{ background: 'rgba(255, 255, 255, 0.2)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', cursor: 'pointer', outline: 'none' }}
           >
             <option value="English" style={{ background: 'white', color: '#333' }}>{t('english')}</option>
-            <option value="Dari" style={{ background: 'white', color: '#333' }}>{t('dari')}</option>
             <option value="Pashto" style={{ background: 'white', color: '#333' }}>{t('pashto')}</option>
+            <option value="Dari" style={{ background: 'white', color: '#333' }}>{t('dari')}</option>
           </select>
         </div>
       </div>

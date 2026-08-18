@@ -56,7 +56,8 @@ interface ReportSection {
 // Reports — generate and export reports (tickets/users/orgs/services) in CSV, PDF, or DOCX
 export default function Reports() {
   const { show, ToastContainer } = useSimpleToast();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'fa' || i18n.language === 'ps';
   // Filter dropdown data from API
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -266,35 +267,35 @@ export default function Reports() {
 
         const sections: ReportSection[] = [
           {
-            title: 'Tickets Report',
+            title: t('ticketsReport'),
             data: extractArrayData<Ticket>(ticketRes.data) as unknown as Record<string, unknown>[],
             fieldMapping: {
-              id: 'Ticket ID', subject: 'Subject', service: 'Service',
-              organization: 'Organization', assignedTo: 'Assigned To',
-              createdBy: 'Created By', status: 'Status', createdAt: 'Created At', solvedAt: 'Solved At',
+              id: t('ticketId'), subject: t('subject'), service: t('service'),
+              organization: t('organization'), assignedTo: t('assignedTo'),
+              createdBy: t('createdBy'), status: t('status'), createdAt: t('createdAt'), solvedAt: t('solvedAt'),
             },
           },
           {
-            title: 'Organizations Report',
+            title: t('organizationsReport'),
             data: extractArrayData<Record<string, unknown>>(orgRes.data),
             fieldMapping: {
-              id: 'Organization ID', name: 'Organization Name', email: 'Email',
-              phone: 'Phone', address: 'Address', createdAt: 'Created At',
+              id: t('organizationId'), name: t('organizationName'), email: t('email'),
+              phone: t('phone'), address: t('address'), createdAt: t('createdAt'),
             },
           },
           {
-            title: 'Users Report',
+            title: t('usersReport'),
             data: extractArrayData<Record<string, unknown>>(usrRes.data),
             fieldMapping: {
-              id: 'User ID', username: 'Username', email: 'Email',
-              role: 'Role', organization: 'Organization', createdAt: 'Created At',
+              id: t('userId'), username: t('username'), email: t('email'),
+              role: t('role'), organization: t('organization'), createdAt: t('createdAt'),
             },
           },
           {
-            title: 'Services Report',
+            title: t('servicesReport'),
             data: extractArrayData<Record<string, unknown>>(svcRes.data),
             fieldMapping: {
-              id: 'Service ID', name: 'Service Name', description: 'Description', createdAt: 'Created At',
+              id: t('serviceId'), name: t('serviceName'), description: t('description'), createdAt: t('createdAt'),
             },
           },
         ];
@@ -320,9 +321,9 @@ export default function Reports() {
         switch (reportType) {
           case 'tickets':
             fieldMapping = {
-              id: 'Ticket ID', subject: 'Subject', service: 'Service',
-              organization: 'Organization', assignedTo: 'Assigned To',
-              createdBy: 'Created By', status: 'Status', createdAt: 'Created At', solvedAt: 'Solved At',
+              id: t('ticketId'), subject: t('subject'), service: t('service'),
+              organization: t('organization'), assignedTo: t('assignedTo'),
+              createdBy: t('createdBy'), status: t('status'), createdAt: t('createdAt'), solvedAt: t('solvedAt'),
             };
             const ticketResponse = await ticketAPI.getAll();
             let ticketsData = extractArrayData<Ticket>(ticketResponse.data);
@@ -342,8 +343,8 @@ export default function Reports() {
 
           case 'organizations':
             fieldMapping = {
-              id: 'Organization ID', name: 'Organization Name', email: 'Email',
-              phone: 'Phone', address: 'Address', createdAt: 'Created At',
+              id: t('organizationId'), name: t('organizationName'), email: t('email'),
+              phone: t('phone'), address: t('address'), createdAt: t('createdAt'),
             };
             const orgResponse = await organizationAPI.getAll();
             data = extractArrayData<Record<string, unknown>>(orgResponse.data);
@@ -351,8 +352,8 @@ export default function Reports() {
 
           case 'users':
             fieldMapping = {
-              id: 'User ID', username: 'Username', email: 'Email',
-              role: 'Role', organization: 'Organization', createdAt: 'Created At',
+              id: t('userId'), username: t('username'), email: t('email'),
+              role: t('role'), organization: t('organization'), createdAt: t('createdAt'),
             };
             const userResponse = await userAPI.getAll();
             data = extractArrayData<Record<string, unknown>>(userResponse.data);
@@ -360,7 +361,7 @@ export default function Reports() {
 
           case 'services':
             fieldMapping = {
-              id: 'Service ID', name: 'Service Name', description: 'Description', createdAt: 'Created At',
+              id: t('serviceId'), name: t('serviceName'), description: t('description'), createdAt: t('createdAt'),
             };
             const serviceResponse = await serviceAPI.getAll();
             data = extractArrayData<Record<string, unknown>>(serviceResponse.data);
@@ -397,23 +398,30 @@ export default function Reports() {
   // Generate and download report as Excel (HTML-based .xls) with centered merged header and logo
   const generateExcel = (data: Record<string, unknown>[], _filename: string, fieldMapping: Record<string, string>) => {
     const colCount = Object.keys(fieldMapping).length;
+    const dir = isRtl ? 'rtl' : 'ltr';
+    const reportLabel = reportType === 'all' ? t('reportAllReports')
+      : reportType === 'tickets' ? t('ticketsReport')
+      : reportType === 'organizations' ? t('organizationsReport')
+      : reportType === 'users' ? t('usersReport')
+      : reportType === 'services' ? t('servicesReport')
+      : `${reportType.toUpperCase()} Report`;
 
-    let html = `<html><head><meta charset="utf-8"><title></title></head><body>`;
-    html += `<table border="0" cellpadding="4" cellspacing="0" style="font-family:Arial,sans-serif;font-size:12px;width:100%">`;
+    let html = `<html><head><meta charset="utf-8"><title></title></head><body dir="${dir}">`;
+    html += `<table border="0" cellpadding="4" cellspacing="0" style="direction:${dir};font-family:Arial,sans-serif;font-size:12px;width:100%">`;
 
 
     // Ministry
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:16px;font-weight:bold;padding:2px">Ministry of Communication &amp; Information Technology</td></tr>`;
+    html += `<tr><td colspan="${colCount}" align="center" style="font-size:16px;font-weight:bold;padding:2px">${escapeHtml(t('ministryOfCommunication'))}</td></tr>`;
     // Directorate
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:13px;color:#555;padding:2px">Directorate of Information Technology</td></tr>`;
+    html += `<tr><td colspan="${colCount}" align="center" style="font-size:13px;color:#555;padding:2px">${escapeHtml(t('directorateOfIT'))}</td></tr>`;
     // System name
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">Customer Support System</td></tr>`;
+    html += `<tr><td colspan="${colCount}" align="center" style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">${escapeHtml(t('ticketSystem'))}</td></tr>`;
     // Divider
     html += `<tr><td colspan="${colCount}" style="border-bottom:2px solid #3b82f6;padding:0"></td></tr>`;
     // Report title
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:16px;font-weight:bold;padding:6px">${reportType.toUpperCase()} Report</td></tr>`;
+    html += `<tr><td colspan="${colCount}" align="center" style="font-size:16px;font-weight:bold;padding:6px">${escapeHtml(reportLabel)}</td></tr>`;
     // Generated on
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:11px;color:#666;padding:2px">Generated on: ${new Date().toLocaleString()}</td></tr>`;
+    html += `<tr><td colspan="${colCount}" align="center" style="font-size:11px;color:#666;padding:2px">${escapeHtml(t('generatedOn'))}: ${new Date().toLocaleString()}</td></tr>`;
     // Blank spacer
     html += `<tr><td colspan="${colCount}" style="padding:4px"></td></tr>`;
 
@@ -463,18 +471,19 @@ export default function Reports() {
 
   // Generate multi-section Excel report (all reports in one file, separate tables)
   const generateExcelMulti = (sections: ReportSection[], _filename: string) => {
-    let html = `<html><head><meta charset="utf-8"><title></title></head><body>`;
+    const dir = isRtl ? 'rtl' : 'ltr';
+    let html = `<html><head><meta charset="utf-8"><title></title></head><body dir="${dir}">`;
 
     // Single header for entire file
     const totalRecords = sections.reduce((sum, s) => sum + s.data.length, 0);
-    html += `<table border="0" cellpadding="4" cellspacing="0" style="font-family:Arial,sans-serif;font-size:12px;width:100%">`;
-    html += `<tr><td colspan="9" align="center" style="font-size:16px;font-weight:bold;padding:2px">Ministry of Communication &amp; Information Technology</td></tr>`;
-    html += `<tr><td colspan="9" align="center" style="font-size:13px;color:#555;padding:2px">Directorate of Information Technology</td></tr>`;
-    html += `<tr><td colspan="9" align="center" style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">Customer Support System</td></tr>`;
+    html += `<table border="0" cellpadding="4" cellspacing="0" style="direction:${dir};font-family:Arial,sans-serif;font-size:12px;width:100%">`;
+    html += `<tr><td colspan="9" align="center" style="font-size:16px;font-weight:bold;padding:2px">${escapeHtml(t('ministryOfCommunication'))}</td></tr>`;
+    html += `<tr><td colspan="9" align="center" style="font-size:13px;color:#555;padding:2px">${escapeHtml(t('directorateOfIT'))}</td></tr>`;
+    html += `<tr><td colspan="9" align="center" style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">${escapeHtml(t('ticketSystem'))}</td></tr>`;
     html += `<tr><td colspan="9" style="border-bottom:2px solid #3b82f6;padding:0"></td></tr>`;
-    html += `<tr><td colspan="9" align="center" style="font-size:16px;font-weight:bold;padding:6px">ALL REPORTS</td></tr>`;
-    html += `<tr><td colspan="9" align="center" style="font-size:11px;color:#666;padding:2px">Generated on: ${new Date().toLocaleString()}</td></tr>`;
-    html += `<tr><td colspan="9" align="center" style="font-size:11px;color:#666;padding:2px">Total Records: ${totalRecords}</td></tr>`;
+    html += `<tr><td colspan="9" align="center" style="font-size:16px;font-weight:bold;padding:6px">${escapeHtml(t('reportAllReports'))}</td></tr>`;
+    html += `<tr><td colspan="9" align="center" style="font-size:11px;color:#666;padding:2px">${escapeHtml(t('generatedOn'))}: ${new Date().toLocaleString()}</td></tr>`;
+    html += `<tr><td colspan="9" align="center" style="font-size:11px;color:#666;padding:2px">${escapeHtml(t('totalRecordsLabel'))}: ${totalRecords}</td></tr>`;
     html += `<tr><td colspan="9" style="padding:8px"></td></tr>`;
     html += `</table>`;
 
@@ -531,6 +540,14 @@ export default function Reports() {
 
   // Generate and open a printable PDF via browser print dialog
   const generatePDF = (data: Record<string, unknown>[], _filename: string, fieldMapping: Record<string, string>) => {
+    const dir = isRtl ? 'rtl' : 'ltr';
+    const textAlign = isRtl ? 'right' : 'left';
+    const reportLabel = reportType === 'all' ? t('reportAllReports')
+      : reportType === 'tickets' ? t('ticketsReport')
+      : reportType === 'organizations' ? t('organizationsReport')
+      : reportType === 'users' ? t('usersReport')
+      : reportType === 'services' ? t('servicesReport')
+      : `${reportType.toUpperCase()} Report`;
     // For PDF, we'll create a simple HTML table and print to PDF
     let htmlContent = `
       <html>
@@ -538,7 +555,7 @@ export default function Reports() {
           <title></title>
           <style>
             @page { margin: 0; }
-            body { font-family: Arial, sans-serif; margin: 20px; }
+            body { font-family: Arial, sans-serif; margin: 20px; direction: ${dir}; }
             .report-header { text-align: center; margin-bottom: 20px; }
             .report-header img { width: 60px; height: 60px; margin-bottom: 8px; }
             .report-header h2 { margin: 4px 0; font-size: 16px; color: #333; font-weight: bold; }
@@ -548,7 +565,7 @@ export default function Reports() {
             .report-header .report-title { font-size: 16px; font-weight: bold; color: #111; margin: 8px 0; }
             .meta { color: #666; margin-bottom: 20px; text-align: center; font-size: 11px; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: ${textAlign}; }
             th { background-color: #3b82f6; color: white; }
             tr:nth-child(even) { background-color: #f2f2f2; }
           </style>
@@ -558,14 +575,14 @@ export default function Reports() {
             <div>
               <img src="${window.location.origin}/logo.gif" alt="MCIT Logo" style="width:60px;height:60px;margin-bottom:8px">
             </div>
-            <h2>Ministry of Communication &amp; Information Technology</h2>
-            <h3>Directorate of Information Technology</h3>
-            <div class="system-name">Customer Support System</div>
+            <h2>${escapeHtml(t('ministryOfCommunication'))}</h2>
+            <h3>${escapeHtml(t('directorateOfIT'))}</h3>
+            <div class="system-name">${escapeHtml(t('ticketSystem'))}</div>
             <hr class="divider">
-            <div class="report-title">${escapeHtml(reportType.toUpperCase())} Report</div>
+            <div class="report-title">${escapeHtml(reportLabel)}</div>
             <hr class="divider">
           </div>
-          <p class="meta">Generated on: ${escapeHtml(new Date().toLocaleString())}</p>
+          <p class="meta">${escapeHtml(t('generatedOn'))}: ${escapeHtml(new Date().toLocaleString())}</p>
           <table>
     `;
 
@@ -618,6 +635,8 @@ export default function Reports() {
   // Generate multi-section PDF report (all reports in one file, separate tables)
   const generatePDFMulti = (sections: ReportSection[], _filename: string) => {
     const totalRecords = sections.reduce((sum, s) => sum + s.data.length, 0);
+    const dir = isRtl ? 'rtl' : 'ltr';
+    const textAlign = isRtl ? 'right' : 'left';
 
     let htmlContent = `
       <html>
@@ -625,7 +644,7 @@ export default function Reports() {
           <title></title>
           <style>
             @page { margin: 0; }
-            body { font-family: Arial, sans-serif; margin: 20px; }
+            body { font-family: Arial, sans-serif; margin: 20px; direction: ${dir}; }
             .report-header { text-align: center; margin-bottom: 20px; }
             .report-header img { width: 60px; height: 60px; margin-bottom: 8px; }
             .report-header h2 { margin: 4px 0; font-size: 16px; color: #333; font-weight: bold; }
@@ -635,7 +654,7 @@ export default function Reports() {
             .report-header .report-title { font-size: 16px; font-weight: bold; color: #111; margin: 8px 0; }
             .meta { color: #666; margin-bottom: 20px; text-align: center; font-size: 11px; }
             table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 30px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: ${textAlign}; }
             th { background-color: #3b82f6; color: white; }
             tr:nth-child(even) { background-color: #f2f2f2; }
             .section-title { background-color: #1e40af; color: white; font-weight: bold; font-size: 13px; padding: 8px; text-align: center; margin-top: 30px; }
@@ -646,14 +665,14 @@ export default function Reports() {
             <div>
               <img src="${window.location.origin}/logo.gif" alt="MCIT Logo" style="width:60px;height:60px;margin-bottom:8px">
             </div>
-            <h2>Ministry of Communication &amp; Information Technology</h2>
-            <h3>Directorate of Information Technology</h3>
-            <div class="system-name">Customer Support System</div>
+            <h2>${escapeHtml(t('ministryOfCommunication'))}</h2>
+            <h3>${escapeHtml(t('directorateOfIT'))}</h3>
+            <div class="system-name">${escapeHtml(t('ticketSystem'))}</div>
             <hr class="divider">
-            <div class="report-title">ALL REPORTS</div>
+            <div class="report-title">${escapeHtml(t('reportAllReports'))}</div>
             <hr class="divider">
           </div>
-          <p class="meta">Generated on: ${escapeHtml(new Date().toLocaleString())} | Total Records: ${totalRecords}</p>
+          <p class="meta">${escapeHtml(t('generatedOn'))}: ${escapeHtml(new Date().toLocaleString())} | ${escapeHtml(t('totalRecordsLabel'))}: ${totalRecords}</p>
     `;
 
     sections.forEach((section) => {

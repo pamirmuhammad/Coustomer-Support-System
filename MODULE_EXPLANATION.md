@@ -1752,7 +1752,7 @@ Step 5: Push to Docker Hub
 | `SPRING_PROFILES_ACTIVE` | No | dev | Active configuration profile |
 | `DB_URL` | No | jdbc:postgresql://localhost:5432/ticket_system | PostgreSQL JDBC URL |
 | `DB_USERNAME` | No | postgres | Database username |
-| `DB_PASSWORD` | No | Admin123@ | Database password |
+| `DB_PASSWORD` | **Yes** | change-me | Database password |
 | `JWT_SECRET` | **Yes** | — | HMAC secret for JWT (min 32 chars) |
 | `JWT_EXPIRATION` | No | 900000 | JWT expiry in milliseconds (15 min) |
 | `CORS_ALLOWED_ORIGINS` | No | http://localhost:5173 | Allowed CORS origins |

@@ -30,7 +30,7 @@ public class TicketSystemApplication {
 	private static void runFlywayMigrations() {
 		String url = getEnv("DB_URL", "jdbc:postgresql://localhost:5432/ticket_system");
 		String username = getEnv("DB_USERNAME", "postgres");
-		String password = getEnv("DB_PASSWORD", "Admin123@");
+		String password = getEnv("DB_PASSWORD", "change-me");
 
 		try {
 			Flyway flyway = Flyway.configure()

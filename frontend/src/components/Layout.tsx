@@ -639,8 +639,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   className="lang-select"
                 >
                   <option value="English">{t('english')}</option>
-                  <option value="Dari">{t('dari')}</option>
                   <option value="Pashto">{t('pashto')}</option>
+                  <option value="Dari">{t('dari')}</option>
                 </select>
               </div>
 

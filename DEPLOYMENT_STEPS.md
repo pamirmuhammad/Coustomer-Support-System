@@ -53,7 +53,7 @@ cd /opt/ticket-system
 cat > .env << 'EOF'
 JWT_SECRET=change-this-to-a-long-random-string-at-least-32-chars
 DB_USERNAME=postgres
-DB_PASSWORD=Admin123@
+DB_PASSWORD=change-me-to-a-strong-password
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=

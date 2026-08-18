@@ -1,6 +1,0 @@
-fix: use ssl.enable instead of starttls.enable for port 465 (SMTPS)
-
-Port 465 uses implicit TLS — the SMTP connection is wrapped in SSL from
-the start. starttls.enable is for port 587 where the connection starts
-plain and then upgrades. Using starttls on port 465 causes the client
-to read TLS handshake bytes as plaintext, hanging until timeout.
