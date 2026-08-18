@@ -1169,7 +1169,7 @@ const psTranslations = {
   organizationsReport: 'د سازمانونو راپور',
   usersReport: 'د کارونکو راپور',
   servicesReport: 'د خدماتو راپور',
-  ministryOfCommunication: 'د اړیکو او معلوماتی تکنالوژی وزارت',
+  ministryOfCommunication: 'د مخابراتو او معلوماتي ټکنالوژۍ وزارت',
   directorateOfIT: 'د معلوماتی تکنالوژی ریاست',
   generatedOn: 'جوړ شوې په',
   reportAllReports: 'ټول راپورونه',
