@@ -49,6 +49,7 @@ public class TicketService {
     private final com.ticket.ticket_system.storage.StorageService storageService;
     private final SlaService slaService;
     private final OrganizationRepository organizationRepository;
+    private final WebSocketNotificationSender webSocketNotificationSender;
 
     /** Returns the username of the currently authenticated user. */
     private String getCurrentUsername() {
@@ -344,6 +345,20 @@ public class TicketService {
 
         // Notify relevant users about new comment
         notificationService.createNotificationForComment(ticket, user);
+
+        // Broadcast the new comment in real time to everyone viewing this ticket's chat
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", comment.getId());
+        payload.put("message", comment.getMessage());
+        payload.put("createdAt", comment.getCreatedAt());
+        payload.put("userId", user.getId());
+        payload.put("username", user.getUsername());
+        payload.put("user", Map.of(
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "role", user.getRole() != null ? user.getRole().getName() : "USER"
+        ));
+        webSocketNotificationSender.sendTicketComment(ticketId, payload);
 
         return ticket;
     }

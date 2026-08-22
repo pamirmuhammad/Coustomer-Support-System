@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import { ticketAPI } from '../services/api';
+import { Client } from '@stomp/stompjs';
+import { ticketAPI, API_BASE_URL } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import './CommentModal.css';
@@ -35,6 +36,7 @@ export default function CommentModal({ ticketId, isOpen, onClose, onCommentsRead
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const commentsEndRef = useRef<HTMLDivElement>(null);
+  const stompClientRef = useRef<Client | null>(null);
 
   // Fetches comments for the current ticket from the API
   const loadComments = async () => {
@@ -48,6 +50,40 @@ export default function CommentModal({ ticketId, isOpen, onClose, onCommentsRead
       setLoading(false);
     }
   };
+
+  // Live updates: subscribe over WebSocket while the modal is open so comments
+  // from admin, client, and support users appear instantly (WhatsApp-style)
+  useEffect(() => {
+    if (!isOpen || !ticketId) return;
+
+    const client = new Client({
+      brokerURL: `${API_BASE_URL.replace('http', 'ws')}/ws`,
+      reconnectDelay: 3000,
+    });
+
+    client.onConnect = () => {
+      client.subscribe(`/topic/tickets/${ticketId}/comments`, (message) => {
+        try {
+          const incoming: Comment = JSON.parse(message.body);
+          // Skip duplicates (e.g. our own message echoed back after refresh)
+          setComments((prev) => {
+            if (prev.some((c) => c.id === incoming.id)) return prev;
+            return [...prev, incoming];
+          });
+        } catch {
+          // ignore malformed frames
+        }
+      });
+    };
+
+    client.activate();
+    stompClientRef.current = client;
+
+    return () => {
+      stompClientRef.current?.deactivate();
+      stompClientRef.current = null;
+    };
+  }, [isOpen, ticketId]);
 
   const handleClose = () => {
     // Report the current comment count when closing

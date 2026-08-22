@@ -26,4 +26,13 @@ public class WebSocketNotificationSender {
         String destination = "/topic/notifications/" + userId + "/count";
         messagingTemplate.convertAndSend(destination, (Object) Map.of("count", count));
     }
+
+    /**
+     * Broadcasts a new comment to all clients subscribed to a ticket's comment stream.
+     * Enables WhatsApp-style real-time messaging between admin, client, and support users.
+     */
+    public void sendTicketComment(Long ticketId, Map<String, Object> payload) {
+        String destination = "/topic/tickets/" + ticketId + "/comments";
+        messagingTemplate.convertAndSend(destination, (Object) payload);
+    }
 }

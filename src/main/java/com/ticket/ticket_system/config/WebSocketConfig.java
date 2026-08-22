@@ -34,7 +34,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         String[] origins = Arrays.stream(corsAllowedOrigins.split(","))
                 .map(s -> s.trim())
                 .toArray(String[]::new);
+        // Native WebSocket endpoint (frontend connects via @stomp/stompjs brokerURL)
         registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns(origins);
+        // SockJS fallback endpoint kept for clients that need it
+        registry.addEndpoint("/ws/sockjs")
                 .setAllowedOriginPatterns(origins)
                 .withSockJS();
     }

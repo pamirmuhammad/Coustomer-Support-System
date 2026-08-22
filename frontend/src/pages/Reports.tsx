@@ -411,18 +411,20 @@ export default function Reports() {
     let html = `<html><head><meta charset="utf-8"><title></title></head><body dir="${dir}">`;
     html += `<table border="0" cellpadding="4" cellspacing="0" style="direction:${dir};font-family:Arial,sans-serif;font-size:12px;width:100%">`;
 
-    // Dual logos row
-    html += `<tr><td colspan="${colCount}" style="padding:4px"><table width="100%" cellpadding="0" cellspacing="0" style="direction:ltr"><tr>`;
-    html += `<td align="left" style="width:50%"><img src="${window.location.origin}${leftLogo}" style="width:50px;height:50px"></td>`;
-    html += `<td align="right" style="width:50%"><img src="${window.location.origin}${rightLogo}" style="width:50px;height:50px"></td>`;
-    html += `</tr></table></td></tr>`;
+    // Header: logos on sides, text centered between them
+    html += `<tr><td colspan="${colCount}" style="padding:4px">`;
+    html += `<table width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif">`;
+    html += `<tr>`;
+    html += `<td width="15%" align="${isRtl ? 'right' : 'left'}" valign="middle"><img src="${window.location.origin}${leftLogo}" style="width:65px;height:65px"></td>`;
+    html += `<td width="70%" align="center" valign="middle">`;
+    html += `<div style="font-size:16px;font-weight:bold;padding:2px">${escapeHtml(t('ministryOfCommunication'))}</div>`;
+    html += `<div style="font-size:13px;color:#555;padding:2px">${escapeHtml(t('directorateOfIT'))}</div>`;
+    html += `<div style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">${escapeHtml(t('ticketSystem'))}</div>`;
+    html += `</td>`;
+    html += `<td width="15%" align="${isRtl ? 'left' : 'right'}" valign="middle"><img src="${window.location.origin}${rightLogo}" style="width:65px;height:65px"></td>`;
+    html += `</tr></table>`;
+    html += `</td></tr>`;
 
-    // Ministry
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:16px;font-weight:bold;padding:2px">${escapeHtml(t('ministryOfCommunication'))}</td></tr>`;
-    // Directorate
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:13px;color:#555;padding:2px">${escapeHtml(t('directorateOfIT'))}</td></tr>`;
-    // System name
-    html += `<tr><td colspan="${colCount}" align="center" style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">${escapeHtml(t('ticketSystem'))}</td></tr>`;
     // Divider
     html += `<tr><td colspan="${colCount}" style="border-bottom:2px solid #3b82f6;padding:0"></td></tr>`;
     // Report title
@@ -484,12 +486,19 @@ export default function Reports() {
     // Single header for entire file
     const totalRecords = sections.reduce((sum, s) => sum + s.data.length, 0);
     html += `<table border="0" cellpadding="4" cellspacing="0" style="direction:${dir};font-family:Arial,sans-serif;font-size:12px;width:100%">`;
-    // Dual logos row
-    html += `<tr><td colspan="9" style="padding:4px"><table width="100%" cellpadding="0" cellspacing="0" style="direction:ltr"><tr>`;
-    html += `<td align="left" style="width:50%"><img src="${window.location.origin}${leftLogo}" style="width:50px;height:50px"></td>`;
-    html += `<td align="right" style="width:50%"><img src="${window.location.origin}${rightLogo}" style="width:50px;height:50px"></td>`;
-    html += `</tr></table></td></tr>`;
-    html += `<tr><td colspan="9" align="center" style="font-size:16px;font-weight:bold;padding:2px">${escapeHtml(t('ministryOfCommunication'))}</td></tr>`;
+    // Header: logos on sides, text centered between them
+    html += `<tr><td colspan="9" style="padding:4px">`;
+    html += `<table width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif">`;
+    html += `<tr>`;
+    html += `<td width="15%" align="${isRtl ? 'right' : 'left'}" valign="middle"><img src="${window.location.origin}${leftLogo}" style="width:65px;height:65px"></td>`;
+    html += `<td width="70%" align="center" valign="middle">`;
+    html += `<div style="font-size:16px;font-weight:bold;padding:2px">${escapeHtml(t('ministryOfCommunication'))}</div>`;
+    html += `<div style="font-size:13px;color:#555;padding:2px">${escapeHtml(t('directorateOfIT'))}</div>`;
+    html += `<div style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">${escapeHtml(t('ticketSystem'))}</div>`;
+    html += `</td>`;
+    html += `<td width="15%" align="${isRtl ? 'left' : 'right'}" valign="middle"><img src="${window.location.origin}${rightLogo}" style="width:65px;height:65px"></td>`;
+    html += `</tr></table>`;
+    html += `</td></tr>`;
     html += `<tr><td colspan="9" align="center" style="font-size:13px;color:#555;padding:2px">${escapeHtml(t('directorateOfIT'))}</td></tr>`;
     html += `<tr><td colspan="9" align="center" style="font-size:14px;font-weight:bold;color:#3b82f6;padding:2px">${escapeHtml(t('ticketSystem'))}</td></tr>`;
     html += `<tr><td colspan="9" style="border-bottom:2px solid #3b82f6;padding:0"></td></tr>`;
@@ -584,13 +593,15 @@ export default function Reports() {
         </head>
         <body>
           <div class="report-header">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <img src="${window.location.origin}${leftLogo}" alt="Logo" style="width:50px;height:50px">
-              <img src="${window.location.origin}${rightLogo}" alt="MCIT Logo" style="width:50px;height:50px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+              <img src="${window.location.origin}${leftLogo}" alt="Logo" style="width:65px;height:65px">
+              <div style="flex:1;text-align:center">
+                <div style="font-size:16px;font-weight:bold;color:#333;margin:2px 0">${escapeHtml(t('ministryOfCommunication'))}</div>
+                <div style="font-size:13px;color:#555;margin:2px 0">${escapeHtml(t('directorateOfIT'))}</div>
+                <div style="font-size:14px;font-weight:bold;color:#3b82f6;margin:2px 0">${escapeHtml(t('ticketSystem'))}</div>
+              </div>
+              <img src="${window.location.origin}${rightLogo}" alt="MCIT Logo" style="width:65px;height:65px">
             </div>
-            <h2>${escapeHtml(t('ministryOfCommunication'))}</h2>
-            <h3>${escapeHtml(t('directorateOfIT'))}</h3>
-            <div class="system-name">${escapeHtml(t('ticketSystem'))}</div>
             <hr class="divider">
             <div class="report-title">${escapeHtml(reportLabel)}</div>
             <hr class="divider">
@@ -675,13 +686,15 @@ export default function Reports() {
         </head>
         <body>
           <div class="report-header">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <img src="${window.location.origin}${leftLogo}" alt="Logo" style="width:50px;height:50px">
-              <img src="${window.location.origin}${rightLogo}" alt="MCIT Logo" style="width:50px;height:50px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+              <img src="${window.location.origin}${leftLogo}" alt="Logo" style="width:65px;height:65px">
+              <div style="flex:1;text-align:center">
+                <div style="font-size:16px;font-weight:bold;color:#333;margin:2px 0">${escapeHtml(t('ministryOfCommunication'))}</div>
+                <div style="font-size:13px;color:#555;margin:2px 0">${escapeHtml(t('directorateOfIT'))}</div>
+                <div style="font-size:14px;font-weight:bold;color:#3b82f6;margin:2px 0">${escapeHtml(t('ticketSystem'))}</div>
+              </div>
+              <img src="${window.location.origin}${rightLogo}" alt="MCIT Logo" style="width:65px;height:65px">
             </div>
-            <h2>${escapeHtml(t('ministryOfCommunication'))}</h2>
-            <h3>${escapeHtml(t('directorateOfIT'))}</h3>
-            <div class="system-name">${escapeHtml(t('ticketSystem'))}</div>
             <hr class="divider">
             <div class="report-title">${escapeHtml(t('reportAllReports'))}</div>
             <hr class="divider">
