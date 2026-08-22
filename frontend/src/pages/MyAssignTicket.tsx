@@ -456,8 +456,8 @@ export default function MyAssignTicket() {
                                              '#86efac'
                               }}
                             >
-                              <option value="PENDING" style={{ color: '#000000', backgroundColor: 'white' }}>{t('pending')}</option>
-                              <option value="IN_PROGRESS" style={{ color: '#000000', backgroundColor: 'white' }}>{t('inProgress')}</option>
+                              <option value="PENDING" disabled={ticket.status === 'SOLVED'} style={{ color: '#000000', backgroundColor: 'white' }}>{t('pending')}</option>
+                              <option value="IN_PROGRESS" disabled={ticket.status === 'SOLVED'} style={{ color: '#000000', backgroundColor: 'white' }}>{t('inProgress')}</option>
                               <option value="SOLVED" style={{ color: '#000000', backgroundColor: 'white' }}>{t('solved')}</option>
                             </select>
                           </td>

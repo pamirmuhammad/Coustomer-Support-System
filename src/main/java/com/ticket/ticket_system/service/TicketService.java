@@ -60,6 +60,13 @@ public class TicketService {
         return "system";
     }
 
+    /** Returns true if the currently authenticated user has the ADMIN role. */
+    private boolean isCurrentUserAdmin() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
     /** Returns the ID of the currently authenticated user. */
     private Long getCurrentUserId() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -247,6 +254,13 @@ public class TicketService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found"));
 
         Ticket.Status oldStatus = ticket.getStatus();
+
+        // Support users cannot reopen a solved ticket — only admins can
+        if (oldStatus == Ticket.Status.SOLVED && status != Ticket.Status.SOLVED && !isCurrentUserAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only admins can change the status of a solved ticket");
+        }
+
         ticket.setStatus(status);
         if (status == Ticket.Status.SOLVED) {
             ticket.setSolvedAt(LocalDateTime.now());
