@@ -62,6 +62,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**",
                                 "/actuator/health/**", // public — required for k8s liveness/readiness probes
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // WebSocket handshake must be reachable; real auth happens on STOMP CONNECT (JWT interceptor)
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/organizations/**",
                                 "/api/v1/services/**",
                                 "/api/v1/roles/**").permitAll()
