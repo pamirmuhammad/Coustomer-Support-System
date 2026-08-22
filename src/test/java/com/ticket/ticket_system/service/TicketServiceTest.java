@@ -48,6 +48,8 @@ class TicketServiceTest {
     private SlaService slaService;
     @Mock
     private OrganizationRepository organizationRepository;
+    @Mock
+    private WebSocketNotificationSender webSocketNotificationSender;
 
     private TicketService ticketService;
 
@@ -61,7 +63,8 @@ class TicketServiceTest {
     void setUp() {
         ticketService = new TicketService(ticketRepository, notificationService, userRepository,
                 notificationRepository, commentRepository, auditLogService,
-                fileValidationService, storageService, slaService, organizationRepository);
+                fileValidationService, storageService, slaService, organizationRepository,
+                webSocketNotificationSender);
 
         service = Service.builder().id(1L).name("Email Support").build();
         organization = Organization.builder().id(1L).name("Test Org").build();
